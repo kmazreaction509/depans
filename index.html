@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>MY DAILY EXPENSES</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
 :root{--bg:#f4f6fb;--cd:#fff;--tx:#14213d;--mu:#6b7691;--pr:#2F5FD0;--ac:#FFC000;--bd:#dfe5f3;--ok:#0B7A3B;--rd:#C00000;--wa:#b36b00;
 color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -110,7 +110,7 @@ document.addEventListener("change",async ev=>{const t=ev.target;
  else if(t.id==="rf"&&t.files[0]){try{const d=JSON.parse(await t.files[0].text());if(!Array.isArray(d.ex))throw 0;if(confirm("Remplacer toutes les données actuelles par cette sauvegarde ?")){S={...S,...d};save();render()}}catch(e){alert("Fichier de sauvegarde invalide.")}}});
 document.addEventListener("input",ev=>{if(ev.target.id==="hq"){F.q=ev.target.value;hl()}});
 function clock(){const t=new Date();$("clk").textContent=t.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+" · "+tm()}
-clock();setInterval(clock,30000);render();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});clock();setInterval(clock,30000);render();
 </script>
 </body>
 </html>
