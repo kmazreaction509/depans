@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>MY DAILY EXPENSES</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#f4f6fb;--cd:#fff;--tx:#14213d;--mu:#6b7691;--pr:#2F5FD0;--ac:#FFC000;--bd:#dfe5f3;--ok:#0B7A3B;--rd:#C00000;--wa:#b36b00;
+color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme="dark"]{--bg:#0e1530;--cd:#18214a;--tx:#eef2ff;--mu:#a3afd6;--pr:#6f93ff;--bd:#2b3868;--ok:#5fd68f;--rd:#ff7b7b;--wa:#ffc766;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1530;--cd:#18214a;--tx:#eef2ff;--mu:#a3afd6;--pr:#6f93ff;--bd:#2b3868;--ok:#5fd68f;--rd:#ff7b7b;--wa:#ffc766;color-scheme:dark}}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg)}
+body{font-family:Arial,Helvetica,sans-serif;color:var(--tx);max-width:720px;margin:0 auto;padding:12px 12px 90px;font-size:15px}
+h1{font-size:18px;margin:4px 0 2px}h2{font-size:16px;margin:0 0 8px}
+.sub{color:var(--mu);font-size:13px;margin-bottom:12px}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.c{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:12px;margin-bottom:12px}
+.g .c{margin:0}.k{color:var(--mu);font-size:12px}.v{font-size:20px;font-weight:700;margin-top:4px}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:16px;font-weight:700;background:var(--pr);color:#fff;margin-bottom:12px}
+.btn.y{background:var(--ac);color:#14213d}.btn.o{background:none;border:2px solid var(--pr);color:var(--tx)}.btn.d{background:var(--rd)}
+label{display:block;font-size:12px;font-weight:700;color:var(--mu);margin:10px 0 4px}
+input,select{width:100%;font-size:16px;padding:11px;border:2px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx)}
+nav{position:fixed;left:0;right:0;bottom:0;max-width:720px;margin:0 auto;display:flex;background:var(--cd);border-top:2px solid var(--ac);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;border:0;background:none;color:var(--mu);font-size:12px;font-weight:700;padding:10px 2px}
+nav button.on{color:var(--pr);border-top:3px solid var(--pr);margin-top:-2px}
+nav i{display:block;font-style:normal;font-size:20px}
+.r{display:flex;justify-content:space-between;gap:8px;padding:10px 2px;border-bottom:1px solid var(--bd)}.r small{display:block;color:var(--mu)}
+.r a{color:var(--pr);margin-left:8px;font-size:13px}
+.bar{height:10px;background:var(--bd);border-radius:6px;overflow:hidden;margin-top:4px}.bar b{display:block;height:100%;background:var(--pr)}
+.al{border-radius:10px;padding:10px;font-weight:700;margin-bottom:10px}.al.w{background:#fff1cc;color:#7a4b00}.al.e{background:#ffd9d9;color:#8a0000}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+</style>
+</head>
+<body>
+<h1>MY DAILY EXPENSES</h1>
+<div class="sub" id="clk"></div>
+<div id="v"></div>
+<nav id="nv"></nav>
+<script>
+const K="mde_v1",DC=["Alimentation","Transport","Maison","Santé","Téléphone / Internet","Business","Famille","Loisirs","Achats personnels","Autres"],PM=["Cash","NatCash","MonCash","Banque","Autre"],
+MO=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+let S={ex:[],cats:[...DC],bud:0,th:""},V="dash",E=null,SM=null,F={q:"",d:"",m:"",c:""};
+try{const t=JSON.parse(localStorage.getItem(K)||"null");if(t)S={...S,...t}}catch(e){}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){alert("Impossible d’enregistrer les données.")}};
+const $=i=>document.getElementById(i),p2=n=>String(n).padStart(2,"0");
+const td=()=>{const t=new Date();return t.getFullYear()+"-"+p2(t.getMonth()+1)+"-"+p2(t.getDate())},tm=()=>{const t=new Date();return p2(t.getHours())+":"+p2(t.getMinutes())};
+const fm=n=>(Math.round(n*100)/100).toLocaleString("fr-FR")+" HTG",esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fd=s=>s.split("-").reverse().join("/"),sum=a=>a.reduce((s,e)=>s+e.a,0),ml=m=>MO[+m.slice(5)-1]+" "+m.slice(0,4);
+const opts=(a,v)=>a.map(x=>`<option value="${esc(x)}"${x===v?" selected":""}>${esc(x)}</option>`).join("");
+function bars(d,h=130){const mx=Math.max(1,...d.map(x=>x.v)),w=Math.max(300,d.length*22),n=d.length;
+ return `<svg viewBox="0 0 ${w} ${h+22}" width="100%" role="img">`+d.map((x,i)=>{const bh=x.v/mx*(h-14),bx=i*(w/n)+2,bw=w/n-4;
+ return `<rect x="${bx}" y="${h-bh}" width="${bw}" height="${bh}" rx="3" fill="var(--pr)"/>`+(n<=13||i%5==0?`<text x="${bx+bw/2}" y="${h+14}" font-size="9" text-anchor="middle" fill="var(--mu)">${x.l}</text>`:"")}).join("")+"</svg>"}
+function budget(m){if(!S.bud)return"";const s=sum(S.ex.filter(e=>e.d.startsWith(m))),pc=s/S.bud*100;
+ return `<div class="c"><h2>Objectif budgétaire</h2>${pc>=100?'<div class="al e">⚠ Budget dépassé !</div>':pc>=80?'<div class="al w">⚠ Attention : 80 % du budget atteint.</div>':""}
+ <div class="two"><div><div class="k">Dépensé</div><b>${fm(s)}</b></div><div><div class="k">Reste</div><b>${fm(Math.max(0,S.bud-s))}</b></div></div>
+ <div class="bar"><b style="width:${Math.min(100,pc)}%;background:${pc>=100?"var(--rd)":pc>=80?"var(--wa)":"var(--ok)"}"></b></div><div class="k">${pc.toFixed(1)} % utilisé sur ${fm(S.bud)}</div></div>`}
+function dash(){const t=td(),m=t.slice(0,7),tx=S.ex.filter(e=>e.d===t),mx=S.ex.filter(e=>e.d.startsWith(m)),dn=+t.slice(8);
+ const days=Array.from({length:dn},(_,i)=>({l:i+1,v:sum(mx.filter(e=>+e.d.slice(8)===i+1))}));
+ return `<button class="btn y" data-a="new">+ Ajouter une dépense</button><div class="g"><div class="c"><div class="k">Aujourd’hui</div><div class="v">${fm(sum(tx))}</div></div>
+ <div class="c"><div class="k">Ce mois</div><div class="v">${fm(sum(mx))}</div></div><div class="c"><div class="k">Transactions aujourd’hui</div><div class="v">${tx.length}</div></div>
+ <div class="c"><div class="k">Moyenne par jour</div><div class="v">${fm(sum(mx)/dn)}</div></div></div>${budget(m)}
+ <div class="c"><h2>Évolution des dépenses du mois</h2>${bars(days)}</div><div class="c"><h2>Dernières dépenses</h2>${list([...S.ex].sort(srt).slice(0,5))}</div>`}
+const srt=(a,b)=>(b.d+b.t).localeCompare(a.d+a.t);
+function list(a){return a.length?a.map(e=>`<div class="r"><div><b>${esc(e.n||e.c)}</b><small>${fd(e.d)} ${e.t} · ${esc(e.c)} · ${esc(e.p)}</small></div><div style="text-align:right"><b>${fm(e.a)}</b><br><a href="#" data-a="ed" data-i="${e.id}">Modifier</a><a href="#" data-a="del" data-i="${e.id}">Supprimer</a></div></div>`).join(""):'<div class="k">Aucune dépense.</div>'}
+function add(){const e=E?S.ex.find(x=>x.id===E):{a:"",n:"",c:S.cats[0],d:td(),t:tm(),p:"Cash"};
+ return `<div class="c"><h2>${E?"Modifier la dépense":"Nouvelle dépense"}</h2><label>Montant dépensé (HTG)</label><input id="fa" type="number" inputmode="decimal" min="0" value="${e.a}">
+ <label>Description de la dépense</label><input id="fn" value="${esc(e.n)}"><label>Catégorie</label><select id="fc">${opts(S.cats,e.c)}</select>
+ <div class="two"><div><label>Date</label><input id="fd" type="date" value="${e.d}"></div><div><label>Heure</label><input id="ft" type="time" value="${e.t}"></div></div>
+ <label>Mode de paiement</label><select id="fp">${opts(PM,e.p)}</select><button class="btn" style="margin-top:14px" data-a="save">Enregistrer</button>${E?'<button class="btn o" data-a="cancel">Annuler</button>':""}</div>`}
+function hist(){return `<div class="c"><h2>Historique</h2><input id="hq" placeholder="Rechercher (description, catégorie)" value="${esc(F.q)}">
+ <div class="two"><div><label>Jour précis</label><input id="hd" type="date" value="${F.d}"></div><div><label>Mois précis</label><input id="hm" type="month" value="${F.m}"></div></div>
+ <label>Catégorie</label><select id="hc"><option value="">Toutes</option>${opts(S.cats,F.c)}</select></div><div class="c" id="hl"></div>`}
+function hl(){const q=F.q.toLowerCase(),a=S.ex.filter(e=>(!q||(e.n+" "+e.c).toLowerCase().includes(q))&&(!F.d||e.d===F.d)&&(!F.m||e.d.startsWith(F.m))&&(!F.c||e.c===F.c)).sort(srt);
+ $("hl").innerHTML=`<div class="two"><div><div class="k">Résultats</div><b>${a.length}</b></div><div><div class="k">Bilan (total)</div><b>${fm(sum(a))}</b></div></div>`+list(a)}
+function stats(){const ms=[...new Set(S.ex.map(e=>e.d.slice(0,7)).concat(td().slice(0,7)))].sort().reverse();SM=SM||ms[0];
+ const a=S.ex.filter(e=>e.d.startsWith(SM)),y=SM.slice(0,4),nd=new Date(+y,+SM.slice(5),0).getDate();
+ const days=Array.from({length:nd},(_,i)=>({l:i+1,v:sum(a.filter(e=>+e.d.slice(8)===i+1))})),top=[...days].sort((x,z)=>z.v-x.v)[0];
+ const ct=S.cats.concat([...new Set(a.map(e=>e.c))].filter(c=>!S.cats.includes(c))).map(c=>({c,v:sum(a.filter(e=>e.c===c))})).filter(x=>x.v>0).sort((x,z)=>z.v-x.v),tot=sum(a);
+ const wk=[1,2,3,4,5].map(w=>({l:"S"+w,v:sum(a.filter(e=>Math.ceil(+e.d.slice(8)/7)===w))})),yr=MO.map((n,i)=>({l:n.slice(0,3),v:sum(S.ex.filter(e=>e.d.startsWith(y+"-"+p2(i+1))))}));
+ return `<div class="c"><h2>Statistiques</h2><select id="sm">${ms.map(m=>`<option value="${m}"${m===SM?" selected":""}>${ml(m)}</option>`).join("")}</select></div>
+ <div class="g"><div class="c"><div class="k">Total du mois</div><div class="v">${fm(tot)}</div></div><div class="c"><div class="k">Jour le plus dépensier</div><div class="v">${top&&top.v?top.l+" ("+fm(top.v)+")":"—"}</div></div>
+ <div class="c" style="grid-column:span 2"><div class="k">Catégorie la plus coûteuse</div><div class="v">${ct[0]?esc(ct[0].c)+" – "+fm(ct[0].v):"—"}</div></div></div>
+ <div class="c"><h2>Dépenses par jour</h2>${bars(days)}</div><div class="c"><h2>Par semaine</h2>${bars(wk)}</div><div class="c"><h2>Par mois en ${y}</h2>${bars(yr)}</div>
+ <div class="c"><h2>Par catégorie</h2>${ct.length?ct.map(x=>`<div style="margin-bottom:8px"><div class="two"><span>${esc(x.c)}</span><b style="text-align:right">${fm(x.v)} · ${(x.v/tot*100).toFixed(0)} %</b></div><div class="bar"><b style="width:${x.v/tot*100}%"></b></div></div>`).join(""):'<div class="k">Aucune donnée.</div>'}</div>`}
+function sets(){return `<div class="c"><h2>Budget mensuel (HTG)</h2><input id="sb" type="number" inputmode="decimal" value="${S.bud||""}" placeholder="Ex. 30000"><button class="btn" style="margin-top:10px" data-a="bud">Enregistrer le budget</button></div>
+ <div class="c"><h2>Nouvelle catégorie</h2><input id="sc" placeholder="Nom de la catégorie"><button class="btn" style="margin-top:10px" data-a="cat">Ajouter la catégorie</button></div>
+ <div class="c"><h2>Apparence</h2><select id="sh"><option value="">Automatique</option><option value="light"${S.th==="light"?" selected":""}>Mode clair</option><option value="dark"${S.th==="dark"?" selected":""}>Mode sombre</option></select></div>
+ <div class="c"><h2>Données</h2><button class="btn y" data-a="csv">Exporter en CSV (Excel)</button><button class="btn o" data-a="bk">Sauvegarde (fichier JSON)</button><button class="btn o" data-a="rs">Restaurer une sauvegarde</button>
+ <input type="file" id="rf" accept=".json,application/json" hidden><div class="k">Les données restent sur cet appareil. Faites une sauvegarde régulièrement.</div></div>`}
+const VW={dash,add,hist,stats,set:sets},NV=[["dash","🏠","Dashboard"],["add","➕","Ajouter"],["hist","🕘","Historique"],["stats","📊","Statistiques"],["set","⚙️","Paramètres"]];
+function go(v){V=v;render();scrollTo(0,0)}
+function render(){document.documentElement.dataset.theme=S.th;$("v").innerHTML=VW[V]();if(V==="hist")hl();
+ $("nv").innerHTML=NV.map(n=>`<button data-a="go" data-i="${n[0]}" class="${V===n[0]?"on":""}"><i>${n[1]}</i>${n[2]}</button>`).join("")}
+function dl(name,txt,type){try{const u=URL.createObjectURL(new Blob([txt],{type})),l=document.createElement("a");l.href=u;l.download=name;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}catch(e){alert("Téléchargement impossible.")}}
+document.addEventListener("click",async ev=>{const t=ev.target.closest("[data-a]");if(!t)return;ev.preventDefault();const a=t.dataset.a,i=t.dataset.i;
+ if(a==="go")E=null,go(i);else if(a==="new")E=null,go("add");else if(a==="cancel")E=null,go("hist");
+ else if(a==="ed")E=+i,go("add");
+ else if(a==="del"){if(confirm("Supprimer cette dépense ?")){S.ex=S.ex.filter(e=>e.id!==+i);save();render()}}
+ else if(a==="save"){const v=+$("fa").value;if(!(v>0)){alert("Entrez un montant valide.");return}if(!$("fd").value){alert("Choisissez une date.");return}
+  const o={a:v,n:$("fn").value.trim(),c:$("fc").value,d:$("fd").value,t:$("ft").value||tm(),p:$("fp").value};
+  if(E)Object.assign(S.ex.find(x=>x.id===E),o);else S.ex.push({id:Date.now(),...o});save();const w=E;E=null;go(w?"hist":"dash")}
+ else if(a==="bud"){S.bud=Math.max(0,+$("sb").value||0);save();alert("Budget enregistré.")}
+ else if(a==="cat"){const n=$("sc").value.trim();if(!n)return;if(S.cats.some(c=>c.toLowerCase()===n.toLowerCase())){alert("Cette catégorie existe déjà.");return}S.cats.push(n);save();render()}
+ else if(a==="csv"){const q=s=>'"'+String(s).replace(/"/g,'""')+'"';dl("MY_DAILY_EXPENSES.csv","\ufeff"+["Date,Heure,Montant (HTG),Description,Catégorie,Paiement"].concat([...S.ex].sort((x,z)=>-srt(x,z)).map(e=>[e.d,e.t,e.a,q(e.n),q(e.c),q(e.p)].join(","))).join("\n"),"text/csv")}
+ else if(a==="bk")dl("MY_DAILY_EXPENSES_sauvegarde.json",JSON.stringify(S),"application/json");
+ else if(a==="rs")$("rf").click()});
+document.addEventListener("change",async ev=>{const t=ev.target;
+ if(t.id==="sm"){SM=t.value;render()}else if(t.id==="sh"){S.th=t.value;save();render()}
+ else if(t.id==="hd"||t.id==="hm"||t.id==="hc"){F.d=$("hd").value;F.m=$("hm").value;F.c=$("hc").value;hl()}
+ else if(t.id==="rf"&&t.files[0]){try{const d=JSON.parse(await t.files[0].text());if(!Array.isArray(d.ex))throw 0;if(confirm("Remplacer toutes les données actuelles par cette sauvegarde ?")){S={...S,...d};save();render()}}catch(e){alert("Fichier de sauvegarde invalide.")}}});
+document.addEventListener("input",ev=>{if(ev.target.id==="hq"){F.q=ev.target.value;hl()}});
+function clock(){const t=new Date();$("clk").textContent=t.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+" · "+tm()}
+clock();setInterval(clock,30000);render();
+</script>
+</body>
+</html>
