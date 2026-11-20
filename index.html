@@ -39,7 +39,7 @@ nav i{display:block;font-style:normal;font-size:20px}
 <script>
 const K="mde_v1",CU=["HTG","USD","DOP","EUR"],DC=["Alimentation","Transport","Maison","Santé","Téléphone / Internet","Business","Famille","Loisirs","Achats personnels","Autres"],PM=["Cash","NatCash","MonCash","Banque","Autre"],
 MO=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
-let S={ex:[],cats:[...DC],bud:0,th:"",rates:{USD:0,DOP:0,EUR:0}},V="dash",E=null,SM=null,F={q:"",d:"",m:"",c:""};
+let S={ex:[],cats:[...DC],bud:0,dbud:0,th:"",rates:{USD:0,DOP:0,EUR:0}},V="dash",E=null,SM=null,F={q:"",d:"",m:"",c:""};
 try{const t=JSON.parse(localStorage.getItem(K)||"null");if(t)S={...S,...t}}catch(e){}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){alert("Impossible d’enregistrer les données.")}};
 const $=i=>document.getElementById(i),p2=n=>String(n).padStart(2,"0");
@@ -50,6 +50,10 @@ const opts=(a,v)=>a.map(x=>`<option value="${esc(x)}"${x===v?" selected":""}>${e
 function bars(d,h=130){const mx=Math.max(1,...d.map(x=>x.v)),w=Math.max(300,d.length*22),n=d.length;
  return `<svg viewBox="0 0 ${w} ${h+22}" width="100%" role="img">`+d.map((x,i)=>{const bh=x.v/mx*(h-14),bx=i*(w/n)+2,bw=w/n-4;
  return `<rect x="${bx}" y="${h-bh}" width="${bw}" height="${bh}" rx="3" fill="var(--pr)"/>`+(n<=13||i%5==0?`<text x="${bx+bw/2}" y="${h+14}" font-size="9" text-anchor="middle" fill="var(--mu)">${x.l}</text>`:"")}).join("")+"</svg>"}
+function dbudget(){if(!S.dbud)return"";const s=sum(S.ex.filter(e=>e.d===td())),pc=s/S.dbud*100;
+ return `<div class="c"><h2>Budget du jour</h2>${pc>=100?'<div class="al e">⚠ Budget du jour dépassé !</div>':pc>=80?'<div class="al w">⚠ Attention : 80 % du budget du jour atteint.</div>':""}
+ <div class="two"><div><div class="k">Dépensé aujourd’hui</div><b>${fm(s)}</b></div><div><div class="k">Reste aujourd’hui</div><b>${fm(Math.max(0,S.dbud-s))}</b></div></div>
+ <div class="bar"><b style="width:${Math.min(100,pc)}%;background:${pc>=100?"var(--rd)":pc>=80?"var(--wa)":"var(--ok)"}"></b></div><div class="k">${pc.toFixed(1)} % utilisé sur ${fm(S.dbud)}${s>S.dbud?" · dépassé de "+fm(s-S.dbud):""}</div></div>`}
 function budget(m){if(!S.bud)return"";const s=sum(S.ex.filter(e=>e.d.startsWith(m))),pc=s/S.bud*100;
  return `<div class="c"><h2>Objectif budgétaire</h2>${pc>=100?'<div class="al e">⚠ Budget dépassé !</div>':pc>=80?'<div class="al w">⚠ Attention : 80 % du budget atteint.</div>':""}
  <div class="two"><div><div class="k">Dépensé</div><b>${fm(s)}</b></div><div><div class="k">Reste</div><b>${fm(Math.max(0,S.bud-s))}</b></div></div>
@@ -58,7 +62,7 @@ function dash(){const t=td(),m=t.slice(0,7),tx=S.ex.filter(e=>e.d===t),mx=S.ex.f
  const days=Array.from({length:dn},(_,i)=>({l:i+1,v:sum(mx.filter(e=>+e.d.slice(8)===i+1))}));
  return `<button class="btn y" data-a="new">+ Ajouter une dépense</button><div class="g"><div class="c"><div class="k">Aujourd’hui</div><div class="v">${fm(sum(tx))}</div></div>
  <div class="c"><div class="k">Ce mois</div><div class="v">${fm(sum(mx))}</div></div><div class="c"><div class="k">Transactions aujourd’hui</div><div class="v">${tx.length}</div></div>
- <div class="c"><div class="k">Moyenne par jour</div><div class="v">${fm(sum(mx)/dn)}</div></div></div>${budget(m)}
+ <div class="c"><div class="k">Moyenne par jour</div><div class="v">${fm(sum(mx)/dn)}</div></div></div>${dbudget()}${budget(m)}
  <div class="c"><h2>Évolution des dépenses du mois</h2>${bars(days)}</div><div class="c"><h2>Dernières dépenses</h2>${list([...S.ex].sort(srt).slice(0,5))}</div>`}
 const srt=(a,b)=>(b.d+b.t).localeCompare(a.d+a.t);
 function list(a){return a.length?a.map(e=>`<div class="r"><div><b>${esc(e.n||e.c)}</b><small>${fd(e.d)} ${e.t} · ${esc(e.c)} · ${esc(e.p)}</small></div><div style="text-align:right"><b>${fm(bs(e))}</b>${e.cu&&e.cu!=="HTG"?`<small>${e.a.toLocaleString("fr-FR")} ${e.cu} × ${e.x}</small>`:""}<br><a href="#" data-a="ed" data-i="${e.id}">Modifier</a><a href="#" data-a="del" data-i="${e.id}">Supprimer</a></div></div>`).join(""):'<div class="k">Aucune dépense.</div>'}
@@ -71,7 +75,7 @@ function hist(){return `<div class="c"><h2>Historique</h2><input id="hq" placeho
  <div class="two"><div><label>Jour précis</label><input id="hd" type="date" value="${F.d}"></div><div><label>Mois précis</label><input id="hm" type="month" value="${F.m}"></div></div>
  <label>Catégorie</label><select id="hc"><option value="">Toutes</option>${opts(S.cats,F.c)}</select></div><div class="c" id="hl"></div>`}
 function hl(){const q=F.q.toLowerCase(),a=S.ex.filter(e=>(!q||(e.n+" "+e.c).toLowerCase().includes(q))&&(!F.d||e.d===F.d)&&(!F.m||e.d.startsWith(F.m))&&(!F.c||e.c===F.c)).sort(srt);
- $("hl").innerHTML=`<div class="two"><div><div class="k">Résultats</div><b>${a.length}</b></div><div><div class="k">Bilan (total)</div><b>${fm(sum(a))}</b></div></div>`+list(a)}
+ $("hl").innerHTML=(F.d&&S.dbud?`<div class="al ${sum(a)>S.dbud?"e":"w"}" style="${sum(a)>S.dbud*.8?"":"display:none"}">${sum(a)>S.dbud?"⚠ Budget du jour dépassé":"⚠ 80 % du budget du jour atteint"}</div>`:"")+`<div class="two"><div><div class="k">Résultats</div><b>${a.length}</b></div><div><div class="k">Bilan (total)</div><b>${fm(sum(a))}</b></div></div>`+list(a)}
 function stats(){const ms=[...new Set(S.ex.map(e=>e.d.slice(0,7)).concat(td().slice(0,7)))].sort().reverse();SM=SM||ms[0];
  const a=S.ex.filter(e=>e.d.startsWith(SM)),y=SM.slice(0,4),nd=new Date(+y,+SM.slice(5),0).getDate();
  const days=Array.from({length:nd},(_,i)=>({l:i+1,v:sum(a.filter(e=>+e.d.slice(8)===i+1))})),top=[...days].sort((x,z)=>z.v-x.v)[0];
@@ -79,10 +83,11 @@ function stats(){const ms=[...new Set(S.ex.map(e=>e.d.slice(0,7)).concat(td().sl
  const wk=[1,2,3,4,5].map(w=>({l:"S"+w,v:sum(a.filter(e=>Math.ceil(+e.d.slice(8)/7)===w))})),yr=MO.map((n,i)=>({l:n.slice(0,3),v:sum(S.ex.filter(e=>e.d.startsWith(y+"-"+p2(i+1))))}));
  return `<div class="c"><h2>Statistiques</h2><select id="sm">${ms.map(m=>`<option value="${m}"${m===SM?" selected":""}>${ml(m)}</option>`).join("")}</select></div>
  <div class="g"><div class="c"><div class="k">Total du mois</div><div class="v">${fm(tot)}</div></div><div class="c"><div class="k">Jour le plus dépensier</div><div class="v">${top&&top.v?top.l+" ("+fm(top.v)+")":"—"}</div></div>
- <div class="c" style="grid-column:span 2"><div class="k">Catégorie la plus coûteuse</div><div class="v">${ct[0]?esc(ct[0].c)+" – "+fm(ct[0].v):"—"}</div></div></div>
+ <div class="c" style="grid-column:span 2"><div class="k">Catégorie la plus coûteuse</div><div class="v">${ct[0]?esc(ct[0].c)+" – "+fm(ct[0].v):"—"}</div></div>${S.dbud?`<div class="c" style="grid-column:span 2"><div class="k">Jours au-dessus du budget journalier (${fm(S.dbud)})</div><div class="v ${days.filter(x=>x.v>S.dbud).length?"neg":""}">${days.filter(x=>x.v>S.dbud).length} jour(s)</div></div>`:""}</div>
  <div class="c"><h2>Dépenses par jour</h2>${bars(days)}</div><div class="c"><h2>Par semaine</h2>${bars(wk)}</div><div class="c"><h2>Par mois en ${y}</h2>${bars(yr)}</div>
  <div class="c"><h2>Par catégorie</h2>${ct.length?ct.map(x=>`<div style="margin-bottom:8px"><div class="two"><span>${esc(x.c)}</span><b style="text-align:right">${fm(x.v)} · ${(x.v/tot*100).toFixed(0)} %</b></div><div class="bar"><b style="width:${x.v/tot*100}%"></b></div></div>`).join(""):'<div class="k">Aucune donnée.</div>'}</div>`}
-function sets(){return `<div class="c"><h2>Budget mensuel (HTG)</h2><input id="sb" type="number" inputmode="decimal" value="${S.bud||""}" placeholder="Ex. 30000"><button class="btn" style="margin-top:10px" data-a="bud">Enregistrer le budget</button></div>
+function sets(){return `<div class="c"><h2>Budget par jour (HTG)</h2><input id="sd" type="number" inputmode="decimal" value="${S.dbud||""}" placeholder="Ex. 1000"><button class="btn" style="margin-top:10px" data-a="dbud">Enregistrer le budget du jour</button>${S.bud?`<div class="k">Suggestion : budget mensuel ÷ 30 = ${fm(Math.round(S.bud/30))} par jour.</div>`:""}</div>
+ <div class="c"><h2>Budget mensuel (HTG)</h2><input id="sb" type="number" inputmode="decimal" value="${S.bud||""}" placeholder="Ex. 30000"><button class="btn" style="margin-top:10px" data-a="bud">Enregistrer le budget</button></div>
  <div class="c"><h2>Taux de change (en HTG)</h2>${["USD","DOP","EUR"].map(c=>`<label>1 ${c} = ? HTG</label><input id="sr${c}" type="number" inputmode="decimal" value="${S.rates[c]||""}">`).join("")}<button class="btn" style="margin-top:10px" data-a="rates">Enregistrer les taux</button><div class="k">Le taux est enregistré avec chaque dépense. Les totaux sont toujours en HTG.</div></div><div class="c"><h2>Nouvelle catégorie</h2><input id="sc" placeholder="Nom de la catégorie"><button class="btn" style="margin-top:10px" data-a="cat">Ajouter la catégorie</button></div>
  <div class="c"><h2>Apparence</h2><select id="sh"><option value="">Automatique</option><option value="light"${S.th==="light"?" selected":""}>Mode clair</option><option value="dark"${S.th==="dark"?" selected":""}>Mode sombre</option></select></div>
  <div class="c"><h2>Données</h2><button class="btn y" data-a="csv">Exporter en CSV (Excel)</button><button class="btn o" data-a="bk">Sauvegarde (fichier JSON)</button><button class="btn o" data-a="rs">Restaurer une sauvegarde</button>
@@ -99,6 +104,7 @@ document.addEventListener("click",async ev=>{const t=ev.target.closest("[data-a]
  else if(a==="save"){const v=+$("fa").value,cu=$("fu").value,x=cu==="HTG"?1:+$("fx").value;if(!(v>0)){alert("Entrez un montant valide.");return}if(!(x>0)){alert("Entrez le taux de change en HTG.");return}if(cu!=="HTG")S.rates[cu]=x;if(!$("fd").value){alert("Choisissez une date.");return}
   const o={a:v,cu,x,n:$("fn").value.trim(),c:$("fc").value,d:$("fd").value,t:$("ft").value||tm(),p:$("fp").value};
   if(E)Object.assign(S.ex.find(x=>x.id===E),o);else S.ex.push({id:Date.now(),...o});save();const w=E;E=null;go(w?"hist":"dash")}
+ else if(a==="dbud"){S.dbud=Math.max(0,+$("sd").value||0);save();alert("Budget du jour enregistré.")}
  else if(a==="bud"){S.bud=Math.max(0,+$("sb").value||0);save();alert("Budget enregistré.")}
  else if(a==="rates"){["USD","DOP","EUR"].forEach(c=>S.rates[c]=Math.max(0,+$("sr"+c).value||0));save();alert("Taux enregistrés.")}
  else if(a==="cat"){const n=$("sc").value.trim();if(!n)return;if(S.cats.some(c=>c.toLowerCase()===n.toLowerCase())){alert("Cette catégorie existe déjà.");return}S.cats.push(n);save();render()}
